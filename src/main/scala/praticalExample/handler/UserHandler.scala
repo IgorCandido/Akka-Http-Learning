@@ -17,8 +17,17 @@ object UserHandler {
   import UserService.dsl._
   def route = get {
     path("user" / IntNumber) { userId =>
-      onSuccess(getUser[IO](userId).unsafeToFuture()) { user =>
+      onSuccess(getUser(userId).unsafeToFuture()) { user =>
         complete(user)
+      }
+    }
+  } ~
+  post{
+    path("user") {
+      entity(as[User]){ user =>
+        onSuccess(createUser(user).unsafeToFuture()) { user =>
+          complete(user)
+        }
       }
     }
   }
