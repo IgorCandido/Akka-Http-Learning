@@ -1,6 +1,10 @@
 package praticalExample.service
 
 import cats.{Monad, MonadError}
+import cats.syntax.flatMap._
+import cats.syntax.functor._
+import cats.syntax.applicativeError._
+import cats.syntax.flatMap._
 import praticalExample.service.model.User
 
 class UserService[F[_]: Monad: UserDb](implicit me: MonadError[F, Throwable]) {
