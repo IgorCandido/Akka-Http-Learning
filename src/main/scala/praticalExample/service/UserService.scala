@@ -5,14 +5,14 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicativeError._
 import cats.syntax.flatMap._
-import praticalExample.service.model.User
+import praticalExample.service.model.{User, UserWithPassword}
 
 class UserService[F[_]: Monad: UserDb](implicit me: MonadError[F, Throwable]) {
   def getUser(id: Int): F[User] = {
     UserDb.dsl.getUser(id)
   }
 
-  def createUser(user: User): F[User] = {
+  def createUser(user: UserWithPassword): F[User] = {
     UserDb.dsl.createUser(user)
   }
 }
@@ -25,7 +25,7 @@ object UserService {
       userService.getUser(id)
 
     def createUser[F[_]](
-      user: User
+      user: UserWithPassword
     )(implicit userService: UserService[F]): F[User] =
       userService.createUser(user)
   }

@@ -14,7 +14,7 @@ object AkkaServer {
     implicit val materializer = ActorMaterializer()
     implicit val dispatcher = system.dispatcher
 
-    val binding = Http().bindAndHandle(UserHandler.route, interface = "localhost", port = 80)
+    val binding = Http().bindAndHandle(UserHandler.publicRoute, interface = "localhost", port = 80)
 
     println("Running on localhost:80")
     StdIn.readLine()

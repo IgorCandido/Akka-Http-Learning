@@ -2,15 +2,17 @@ package praticalExample.service
 
 import cats.MonadError
 import praticalExample.error.ExampleError
-import praticalExample.service.model.User
+import praticalExample.service.model.{User, UserWithPassword}
 
 trait UserDb[F[_]] {
-  def getUser(id: Int)(
+  def getUser(id: Int)(implicit monadError: MonadError[F, Throwable]): F[User]
+  def createUser(user: UserWithPassword)(
     implicit monadError: MonadError[F, Throwable]
   ): F[User]
-  def createUser(user: User)(
+
+  def getUserForAuth(id: Int)(
     implicit monadError: MonadError[F, Throwable]
-  ): F[User]
+  ): F[UserWithPassword]
 }
 
 object UserDb {
@@ -24,11 +26,15 @@ object UserDb {
       userDb.getUser(id)
     }
 
-    def createUser[F[_]](user: User)(
+    def createUser[F[_]](user: UserWithPassword)(
       implicit userDb: UserDb[F],
       monadError: MonadError[F, Throwable]
     ): F[User] = {
       userDb.createUser(user)
     }
+
+    def getUserForAuth[F[_]](id: Int)(implicit userDb: UserDb[F],
+                                      monadError: MonadError[F, Throwable]): F[UserWithPassword] =
+      userDb.getUserForAuth(id)
   }
 }
