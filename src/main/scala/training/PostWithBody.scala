@@ -47,7 +47,7 @@ object PostWithBody {
 
     val binding = Http().bindAndHandle(route, interface = "localhost", port = 80)
 
-    println("Running on localhost:80z")
+    println("Running on localhost:80")
     StdIn.readLine()
     binding.flatMap(_.unbind()).onComplete{_ => system.terminate()}
   }

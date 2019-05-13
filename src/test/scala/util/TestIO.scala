@@ -1,19 +1,17 @@
 package util
 
-import cats.{Monad, MonadError, StackSafeMonad}
+import cats.{Monad, MonadError}
 import cats.implicits._
-import praticalExample.error.ExampleError
+import praticalExample.error.{UserAlreadyExisted, UserDoesntExist}
 import praticalExample.service.UserDb
 import praticalExample.service.model.{User, UserWithPassword}
 
-import scala.annotation.tailrec
-
-case class TestData(users: Map[Int, User] = Map.empty)
+case class TestData(var users: Map[Int, UserWithPassword] = Map.empty)
 
 case class TestIO[A](run: TestData => (TestData, Either[Throwable, A]))
 
 object TestIO {
-  implicit val monadTestIO = new StackSafeMonad[TestIO]
+  implicit val monadTestIO = new Monad[TestIO]
   with MonadError[TestIO, Throwable] {
     override def pure[A](x: A): TestIO[A] =
       TestIO((testData) => (testData, Right(x)))
@@ -27,15 +25,11 @@ object TestIO {
         }
       )
 
-    /*
-    @tailrec
-    override def tailRecM[A, B](
-      a: A
-    )(f: A => TestIO[Either[A, B]]): TestIO[B] =
-      f(a).run(testData) match {
-        case (t, Right(br)) => (t, br)
-        case (t, Left(ar)) => tailRecM(ar){f(_).run(t)}
-      } */
+    override def tailRecM[A, B](a: A)(f: A => TestIO[Either[A, B]]): TestIO[B] =
+      flatMap(f(a)) {
+        case Left(ar)  => tailRecM(ar)(f)
+        case Right(br) => pure(br)
+      }
 
     override def raiseError[A](e: Throwable): TestIO[A] =
       TestIO(testData => (testData, Left(e)))
@@ -50,20 +44,6 @@ object TestIO {
             case (t, Left(error))    => f(error).run(t)
         }
       )
-  }
-
-  implicit val userDbTestIO = new UserDb[TestIO] {
-    override def getUser(id: Int)(
-      implicit monadError: MonadError[TestIO, Throwable]
-    ): TestIO[User] = ???
-
-    override def createUser(user: UserWithPassword)(
-      implicit monadError: MonadError[TestIO, Throwable]
-    ): TestIO[User] = ???
-
-    override def getUserForAuth(id: Int)(
-      implicit monadError: MonadError[TestIO, Throwable]
-    ): TestIO[UserWithPassword] = ???
   }
 
   def userDb(user: User, password: String = "1234")(
